@@ -105,11 +105,8 @@ def display_cluster_members(df, sel, align_mcs=True, strip_counterions=True, mol
                 if i % mol_per_row == j:
                     if j == 0:
                         mol_grid = st.beta_columns(beta_col)
-                        mol_grid[j].image(get_img(mol_list[i]))
-                        mol_grid[j].write(legends[i])
-                    else:
-                        mol_grid[j].image(get_img(mol_list[i]))
-                        mol_grid[j].write(legends[i])
+                    mol_grid[j].image(get_img(mol_list[i]))
+                    mol_grid[j].write(legends[i])
 
 
 @st.cache
@@ -120,25 +117,20 @@ def get_img(mol):
 def update_box(clust_id):
     st.session_state[clust_id] = st.session_state[clust_id]
 
+
 def display_cluster_card(df, mol_per_row=4):
     mol_list = [Chem.MolFromSmiles(x) for x in df.SMILES]
     mol_count = [x for x in df.Num]
     cluster_name = [str(y) for y in df.Cluster]
-    answers = {}
     beta_col = [1] * mol_per_row
     for i in range(len(mol_list)):
         for j in range(mol_per_row):
             if i % mol_per_row == j:
                 if j == 0:
                     checkboxes = st.beta_columns(beta_col)
-                    checkboxes[j].checkbox(label='Cluster ' + str(cluster_name[i]),key=cluster_name[i],on_change=update_box(str(cluster_name[i])))
-                    checkboxes[j].image(get_img(mol_list[i]))
-                    checkboxes[j].write(mol_count[i])
-                else:
-                    checkboxes[j].checkbox(label='Cluster ' + str(cluster_name[i]), key=cluster_name[i],
-                                           on_change=update_box(str(cluster_name[i])))
-                    checkboxes[j].image(get_img(mol_list[i]))
-                    checkboxes[j].write(mol_count[i])
+                checkboxes[j].checkbox(label='Cluster ' + str(cluster_name[i]), key=cluster_name[i],on_change=update_box(str(cluster_name[i])))
+                checkboxes[j].image(get_img(mol_list[i]))
+                checkboxes[j].write("mol in cluster: "+str(mol_count[i]))
 
 
 butina_cluster = ButinaCluster("rdkit")
@@ -166,7 +158,7 @@ for i in range(len(idx)):
 page_name = ['Page ' + str(x) for x in range(1, len(idx_list) + 1)]
 
 
-first, previous, next, last, page_number = st.beta_columns([1, 1, 1, 1, 1])
+first, previous, next_page, last, page_number = st.beta_columns([1, 1, 1, 1, 1])
 deselect_all, select_all, p1, p2 = st.beta_columns([1, 1, 1, 1])
 
 if 'page' not in st.session_state:
@@ -179,12 +171,12 @@ for i in cluster_name:
 
 with previous:
     if st.button("PREVIOUS"):
-        st.session_state.page = st.session_state.page - 1
+        st.session_state.page -= 1
         if st.session_state.page == 0:
             st.session_state.page = 1
-with next:
+with next_page:
     if st.button("NEXT"):
-        st.session_state.page = st.session_state.page + 1
+        st.session_state.page += 1
         if st.session_state.page > len(idx_list):
             st.session_state.page = len(idx_list)
 with first:
@@ -208,7 +200,7 @@ with select_all:
             st.session_state[i] = True
 
 
-answers = display_cluster_card(cluster_df[idx_list[st.session_state.page - 1][0]:idx_list[st.session_state.page - 1][1]], mol_per_row=4)
+display_cluster_card(cluster_df[idx_list[st.session_state.page - 1][0]:idx_list[st.session_state.page - 1][1]], mol_per_row=4)
 
 
 cluster_selected = [i for i in cluster_name if st.session_state[i]]
